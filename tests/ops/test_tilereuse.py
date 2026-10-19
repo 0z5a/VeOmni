@@ -96,12 +96,22 @@ class VeOmniBinding(unittest.TestCase):
             result = attention(*args, sparse_topk_indices="current-ids")
             self.assertEqual(result[1]["group_size"], group)
             self.assertEqual(result[2], args)
-            self.assertEqual(result[3], {"sparse_topk_indices": "current-ids"})
+            self.assertEqual(result[3], {"sparse_topk_indices": "current-ids", "dropout": 0.0})
             self.assertTrue(result[1]["profile"])
             self.assertTrue(result[1]["elide_singleton_cat"])
             self.assertTrue(result[1]["elide_zero_padding"])
         self.assertEqual(sum(attention.choice_counts.values()), 5)
         self.assertEqual(attention.choice_counts["g8-b32-m64-both"], 2)
+
+    def test_dispatch_accepts_native_positional_dropout(self):
+        with patch("scripts.experiments.tilereuse._adapter.bind_chunk_attention", side_effect=self.fake_bind):
+            attention = tilereuse.make_attention(self.native)
+        query = SimpleNamespace(shape=(1, 16, 17, 512))
+        args = (object(), query, object(), object(), None, 512**-0.5)
+        positional = attention(*args, 0.0, sparse_topk_indices="current-ids")
+        keyword = attention(*args, dropout=0.0, sparse_topk_indices="current-ids")
+        self.assertEqual(positional, keyword)
+        self.assertEqual(positional[3], {"dropout": 0.0, "sparse_topk_indices": "current-ids"})
 
     def test_fixed_configuration_does_not_construct_other_paths(self):
         with patch("scripts.experiments.tilereuse._adapter.bind_chunk_attention", side_effect=self.fake_bind):

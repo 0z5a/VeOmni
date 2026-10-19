@@ -50,10 +50,10 @@ def make_attention(native, configuration=SHAPE_POLICY, *, profile=False):
     functions = {name: _fixed_attention(native, name, profile) for name in FIXED_CONFIGS}
     counts = {}
 
-    def attention(module, query, key, value, attention_mask, scaling, **kwargs):
+    def attention(module, query, key, value, attention_mask, scaling, dropout=0.0, **kwargs):
         selected = select(query.shape[1])
         counts[selected] = counts.get(selected, 0) + 1
-        return functions[selected](module, query, key, value, attention_mask, scaling, **kwargs)
+        return functions[selected](module, query, key, value, attention_mask, scaling, dropout=dropout, **kwargs)
 
     attention.choice_counts = counts
     return attention

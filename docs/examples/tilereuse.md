@@ -46,6 +46,24 @@ TileLang or VeOmni. Constructing a callable requires the compatible VeOmni
 runtime, PyTorch, Triton, TileLang and an NVIDIA SM90+ GPU. This change does not
 establish a new runtime-version compatibility matrix.
 
+For the native model path, configure the existing ops before model construction:
+
+```yaml
+model:
+  ops_implementation:
+    attn_implementation: eager
+    dsa_attention_implementation: tilelang
+  model_config:
+    dsa_indexer_loss: false
+    attention_dropout: 0.0
+```
+
+These are separate selections: the eager interface uses the temporary module
+binding, while `dsa_attention_implementation: tilelang` makes the native model
+produce the required `sparse_topk_indices`. The latter defaults to `eager`; a
+context alone does not enable compact sparse-ID construction. Direct callers
+of the returned callable must supply their valid IDs themselves.
+
 ```python
 from scripts.experiments.tilereuse import attention_context, make_attention, select
 from veomni.models.transformers.deepseek_v4.generated import patched_modeling_deepseek_v4_gpu as native
