@@ -1,0 +1,132 @@
+{
+  "source_commit": "c929327ed8d71889c1f4bf75195b3e90133bcbb3",
+  "scope": "Source extraction with package-relative imports and repository formatting; numerical ASTs remain unchanged. The new entry point has no GPU qualification.",
+  "files": [
+    {
+      "source": "bench/reuse_sparse_mla_fwd.py",
+      "source_sha256": "f44baaa9f8a174073a632a9c37789f30b870255725d007da6366c423f8b11b4c",
+      "target": "scripts/experiments/tilereuse/_forward.py",
+      "target_sha256": "a062bdac2a674be14c33b849b8db7904eb01fbccf250242102a67cea7e09cacb",
+      "import_replacements": [],
+      "numerical_ast_sha256": "d9aa852872011a725cf5c3afb00a20375f678d1ca886ee90243aecadbb932a05"
+    },
+    {
+      "source": "bench/reuse_sparse_mla_bwd.py",
+      "source_sha256": "f1e8f67fdf09e2cf185bee1891b5003ce3751c8559d681911563223339b50acf",
+      "target": "scripts/experiments/tilereuse/_backward.py",
+      "target_sha256": "67ee990bd50ccb69143048a3ececab494c3d52559ee12ea12e5ad46bd06bab98",
+      "import_replacements": [],
+      "numerical_ast_sha256": "5c208bc0cc5bb5ece5c9b7e95e4eb5ce230407ce183585accb6cf00f95c813d9"
+    },
+    {
+      "source": "bench/grouped_sparse_attention.py",
+      "source_sha256": "c67e3132c3d10a034e5632d3dcf11ae1c42c50bf4a137cc22bd1efa42c168e1c",
+      "target": "scripts/experiments/tilereuse/_grouped.py",
+      "target_sha256": "7e65295a7b9a40d0677ed9b4461c2b24d7559d0e699b1842e278b55775448087",
+      "import_replacements": [
+        {
+          "before": "import reuse_sparse_mla_bwd as backward\n",
+          "after": "from . import _backward as backward\n"
+        },
+        {
+          "before": "import reuse_sparse_mla_fwd as forward\n",
+          "after": "from . import _forward as forward\n"
+        }
+      ],
+      "numerical_ast_sha256": "c61444574be2528549654a2762fc211ed2d685d2f4bf886ae4eae206bbf57f04"
+    },
+    {
+      "source": "bench/veomni_copy_elision.py",
+      "source_sha256": "1022022e4486b1d49fc37f4f4e4acc0d1f905d9e93e26b978b93849e7d306082",
+      "target": "scripts/experiments/tilereuse/_adapter.py",
+      "target_sha256": "2e73f11383b3a2b4d2a4c939c9e11d1b5f99961668359f9e93fe3a6459d82233",
+      "import_replacements": [
+        {
+          "before": "    import reuse_sparse_mla_bwd as reused_bwd\n",
+          "after": "    from . import _backward as reused_bwd\n"
+        },
+        {
+          "before": "    import reuse_sparse_mla_fwd as reused_fwd\n",
+          "after": "    from . import _forward as reused_fwd\n"
+        },
+        {
+          "before": "    from grouped_sparse_attention import group_plan\n",
+          "after": "    from ._grouped import group_plan\n"
+        }
+      ],
+      "numerical_ast_sha256": "e7fda3bc53a4aacfd7dd8ebf01365e1ecc6d760288ccb461c3f0ead0a806fdec"
+    }
+  ],
+  "veomni_base_commit": "8791a71f2ee2a732453b44392375e6a06aa00324",
+  "ast_normalization": "Remove Import and ImportFrom nodes recursively and empty type_params fields; SHA256 of ast.dump without attributes.",
+  "dispatch_reference": {
+    "source": "bench/reuse_dispatch_spec.py",
+    "source_sha256": "a3fa5f58028ecf4162d8c13a1e0a938232b052b6df70601be8c0e0ed47f17482",
+    "fixed_ids": [
+      "tuned-both",
+      "g2-b32-m64-both",
+      "g4-b32-m64-both",
+      "g8-b32-m64-both"
+    ],
+    "fixed_configs": [
+      {
+        "id": "tuned-both",
+        "group": 1,
+        "block": 64,
+        "head_tile": 32,
+        "pad": true,
+        "kernel_id": "tuned",
+        "copy_variant": "both",
+        "adapter_options": {
+          "elide_singleton_cat": true,
+          "elide_zero_padding": true
+        }
+      },
+      {
+        "id": "g2-b32-m64-both",
+        "group": 2,
+        "block": 32,
+        "head_tile": 64,
+        "pad": false,
+        "kernel_id": "g2-b32-m64",
+        "copy_variant": "both",
+        "adapter_options": {
+          "elide_singleton_cat": true,
+          "elide_zero_padding": true
+        }
+      },
+      {
+        "id": "g4-b32-m64-both",
+        "group": 4,
+        "block": 32,
+        "head_tile": 64,
+        "pad": false,
+        "kernel_id": "g4-b32-m64",
+        "copy_variant": "both",
+        "adapter_options": {
+          "elide_singleton_cat": true,
+          "elide_zero_padding": true
+        }
+      },
+      {
+        "id": "g8-b32-m64-both",
+        "group": 8,
+        "block": 32,
+        "head_tile": 64,
+        "pad": false,
+        "kernel_id": "g8-b32-m64",
+        "copy_variant": "both",
+        "adapter_options": {
+          "elide_singleton_cat": true,
+          "elide_zero_padding": true
+        }
+      }
+    ],
+    "shape_rule": {
+      "8": "g8-b32-m64-both",
+      "16": "g4-b32-m64-both",
+      "32": "g2-b32-m64-both"
+    },
+    "fallback": "tuned-both"
+  }
+}

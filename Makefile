@@ -1,6 +1,6 @@
 .PHONY: build commit quality style test patchgen check-patchgen check-agent-docs
 
-check_dirs := tasks tests veomni docs
+check_dirs := tasks tests veomni docs scripts/experiments/tilereuse
 
 build:
 	python3 setup.py sdist bdist_wheel
